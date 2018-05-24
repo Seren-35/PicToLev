@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) try {
 		return 1;
 	}
 	image_file_context<const unsigned char> inputs[image_count];
-	for (unsigned i = 0; i < image_count; i++) {
+	for (gsl::index i = 0; i < image_count; i++) {
 		auto& input = inputs[i];
 		input.filename = argv[i + 1];
 		if (i != 0) {
@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) try {
 	unsigned tileset_height = (tile_count - 1) / tileset_width + 1;
 	unsigned tileset_image_height = tileset_height * tile_size;
 	image_file_context<unsigned char> outputs[image_count];
-	for (unsigned i = 0; i < image_count; i++) {
+	for (gsl::index i = 0; i < image_count; i++) {
 		const auto& input = inputs[i];
 		auto& output = outputs[i];
 		output.width = tileset_image_width;
