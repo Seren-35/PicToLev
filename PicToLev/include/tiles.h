@@ -53,6 +53,7 @@ template<class ForwardIt>
 auto image_to_tile_list(ForwardIt first, ForwardIt last, std::size_t tile_size) {
 	using container_type = std::remove_reference_t<typename ForwardIt::reference>;
 	using value_type = std::remove_reference_t<typename container_type::reference>;
+	using size_type = typename container_type::size_type;
 	std::size_t height = std::distance(first, last) / tile_size;
 	std::size_t width = first != last ? first->size() / tile_size : 0;
 	tile_vector<value_type> tiles(width * height, image_fragment<value_type>(tile_size));
@@ -60,7 +61,7 @@ auto image_to_tile_list(ForwardIt first, ForwardIt last, std::size_t tile_size) 
 	while (first != last) {
 		ForwardIt second = first;
 		std::advance(second, tile_size);
-		for (std::size_t x = 0; x != first->size(); x += tile_size) {
+		for (size_type x = 0; x != first->size(); x += tile_size) {
 			std::transform(first, second, out->begin(), [=](const auto& row) {
 				return gsl::span<value_type>(row.data() + x, tile_size);
 			});
