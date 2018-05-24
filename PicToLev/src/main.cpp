@@ -116,8 +116,8 @@ void write_data_streams(level_file_context& context) {
 	}
 	std::size_t dictionary_size = tile_dictionary.size();
 	std::vector<std::vector<unsigned>> ordered_dictionary(dictionary_size);
-	for (const auto& keyValue : tile_dictionary) {
-		ordered_dictionary[keyValue.second] = keyValue.first;
+	for (const auto& key_value : tile_dictionary) {
+		ordered_dictionary[key_value.second] = key_value.first;
 	}
 	std::ofstream stream3("Stream3", std::ios::binary);
 	for (const auto& word : ordered_dictionary) {
@@ -161,8 +161,8 @@ int main(int argc, char* argv[]) try {
 	level.layer.assign(level.layer_height, std::vector<unsigned>(level.layer_width));
 	using image_t = image_fragment<const unsigned char>;
 	using tile_t = std::vector<image_t>;
-	tile_t emptyTile(image_count, image_t(tile_size, gsl::span<const unsigned char>(empty_tile_row)));
-	std::unordered_map<tile_t, std::size_t, container_deep_hash_t<tile_t, std::hash<unsigned char>>> tiles {{std::move(emptyTile), 0}};
+	tile_t empty_tile(image_count, image_t(tile_size, gsl::span<const unsigned char>(empty_tile_row)));
+	std::unordered_map<tile_t, std::size_t, container_deep_hash_t<tile_t, std::hash<unsigned char>>> tiles {{std::move(empty_tile), 0}};
 	for (auto&& context : inputs) {
 		context.tiles_it = context.tiles.begin();
 	}
