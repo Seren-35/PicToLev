@@ -116,8 +116,8 @@ void write_data_streams(level_file_context& context) {
 	}
 	std::size_t dictionary_size = tile_dictionary.size();
 	std::vector<std::vector<unsigned>> ordered_dictionary(dictionary_size);
-	for (const auto& key_value : tile_dictionary) {
-		ordered_dictionary[key_value.second] = key_value.first;
+	for (const auto& [word_content, word_id] : tile_dictionary) {
+		ordered_dictionary[word_id] = word_content;
 	}
 	std::ofstream stream3("Stream3", std::ios::binary);
 	for (const auto& word : ordered_dictionary) {
@@ -194,9 +194,9 @@ int main(int argc, char* argv[]) try {
 		output.buffer.assign(tileset_image_width * tileset_image_height, 0);
 		const auto output_image = buffer_to_image(output.buffer.data(), tileset_image_width, tileset_image_height);
 		output.tiles = image_to_tile_list(output_image.begin(), output_image.end(), tile_size);
-		for (const auto& key_value : tiles) {
-			const auto& src = key_value.first[i];
-			const auto& dest = output.tiles[key_value.second];
+		for (const auto& [tile_content, tile_id] : tiles) {
+			const auto& src = tile_content[i];
+			const auto& dest = output.tiles[tile_id];
 			auto out = dest.begin();
 			for (auto it = src.begin(); it != src.end(); ++it, ++out) {
 				std::copy(it->begin(), it->end(), out->begin());
