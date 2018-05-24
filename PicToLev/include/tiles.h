@@ -37,11 +37,11 @@ template<class T>
 using image_fragment = std::vector<gsl::span<T>>;
 
 template<class T>
-auto buffer_to_image(T* buffer, std::size_t width, std::size_t height) {
+auto buffer_to_image(gsl::span<T> buffer, std::size_t width, std::size_t height) {
 	image_fragment<T> image(height);
 	std::generate(image.begin(), image.end(), [buffer, width]() mutable {
-		gsl::span<T> row(buffer, width);
-		buffer += width;
+		gsl::span<T> row = buffer.subspan(0, width);
+		buffer = buffer.subspan(width);
 		return row;
 	});
 	return image;

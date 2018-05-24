@@ -90,7 +90,7 @@ bool get_tile_list(image_file_context<const unsigned char>& context) {
 		std::cerr << "Width and height must be multiples of 32" << std::endl;
 		return false;
 	}
-	const auto image = buffer_to_image(std::as_const(context.buffer).data(), width, height);
+	const auto image = buffer_to_image(gsl::make_span(std::as_const(context.buffer)), width, height);
 	context.tiles = image_to_tile_list(image.begin(), image.end(), tile_size);
 	return true;
 }
@@ -192,7 +192,7 @@ int main(int argc, char* argv[]) try {
 		output.width = tileset_image_width;
 		output.height = tileset_image_height;
 		output.buffer.assign(tileset_image_width * tileset_image_height, 0);
-		const auto output_image = buffer_to_image(output.buffer.data(), tileset_image_width, tileset_image_height);
+		const auto output_image = buffer_to_image(gsl::make_span(output.buffer), tileset_image_width, tileset_image_height);
 		output.tiles = image_to_tile_list(output_image.begin(), output_image.end(), tile_size);
 		for (const auto& [tile_content, tile_id] : tiles) {
 			const auto& src = tile_content[i];
