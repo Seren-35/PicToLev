@@ -31,6 +31,7 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#include <gsl/gsl_util>
 #include <gsl/span>
 #include "container_hash.h"
 #include "lodepng.h"
@@ -103,8 +104,8 @@ struct level_file_context {
 void write_data_streams(level_file_context& context) {
 	unsigned reduced_width = (context.layer_width - 1) / word_size + 1;
 	unsigned rounded_width = reduced_width * word_size;
-	std::vector<unsigned> words(context.layer_height * reduced_width);
-	std::map<std::vector<unsigned>, unsigned> tile_dictionary {{std::vector<unsigned>(word_size, 0), 0}};
+	std::vector<std::size_t> words(context.layer_height * reduced_width);
+	std::map<std::vector<unsigned>, std::size_t> tile_dictionary {{std::vector<unsigned>(word_size, 0), 0}};
 	auto word_it = words.begin();
 	for (auto&& layer_row : context.layer) {
 		layer_row.resize(rounded_width);
@@ -161,7 +162,7 @@ int main(int argc, char* argv[]) try {
 	using image_t = image_fragment<const unsigned char>;
 	using tile_t = std::vector<image_t>;
 	tile_t emptyTile(image_count, image_t(tile_size, gsl::span<const unsigned char>(empty_tile_row)));
-	std::unordered_map<tile_t, unsigned, container_deep_hash_t<tile_t, std::hash<unsigned char>>> tiles {{std::move(emptyTile), 0}};
+	std::unordered_map<tile_t, std::size_t, container_deep_hash_t<tile_t, std::hash<unsigned char>>> tiles {{std::move(emptyTile), 0}};
 	for (auto&& context : inputs) {
 		context.tiles_it = context.tiles.begin();
 	}
@@ -173,10 +174,10 @@ int main(int argc, char* argv[]) try {
 				++context.tiles_it;
 			}
 			auto result = tiles.emplace(std::move(tile), tiles.size());
-			layer_tile = result.first->second;
+			layer_tile = gsl::narrow_cast<unsigned>(result.first->second);
 		}
 	}
-	std::size_t tile_count = tiles.size();
+	unsigned tile_count = gsl::narrow_cast<unsigned>(tiles.size());
 	if (tile_count > max_tiles) {
 		std::cerr << "The resulting tileset would have more than ";
 		std::cerr << max_tiles << " tiles" << std::endl;
