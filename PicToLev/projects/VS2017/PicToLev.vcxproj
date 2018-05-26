@@ -100,6 +100,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
+      <PreprocessorDefinitions>GSL_THROW_ON_CONTRACT_VIOLATION;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -130,6 +131,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
+      <PreprocessorDefinitions>GSL_UNENFORCED_ON_CONTRACT_VIOLATION;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
