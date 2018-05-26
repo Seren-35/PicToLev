@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\include\binary_serialization.h" />
     <ClInclude Include="..\..\include\container_hash.h" />
     <ClInclude Include="..\..\include\container_traits.h" />
     <ClInclude Include="..\..\include\lodepng.h" />

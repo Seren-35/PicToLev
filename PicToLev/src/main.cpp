@@ -24,6 +24,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <cstdint>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -33,6 +34,7 @@
 #include <vector>
 #include <gsl/gsl_util>
 #include <gsl/span>
+#include "binary_serialization.h"
 #include "container_hash.h"
 #include "lodepng.h"
 #include "tiles.h"
@@ -122,12 +124,12 @@ void write_data_streams(level_file_context& context) {
 	std::ofstream stream3("Stream3", std::ios::binary);
 	for (const auto& word : ordered_dictionary) {
 		for (const auto& tile : word) {
-			stream3.write(reinterpret_cast<const char*>(&tile), 2);
+			write_binary<endian::little>(stream3, gsl::narrow_cast<std::uint16_t>(tile));
 		}
 	}
 	std::ofstream stream4("Stream4", std::ios::binary);
 	for (const auto& word : words) {
-		stream4.write(reinterpret_cast<const char*>(&word), 2);
+		write_binary<endian::little>(stream4, gsl::narrow_cast<std::uint16_t>(word));
 	}
 }
 
