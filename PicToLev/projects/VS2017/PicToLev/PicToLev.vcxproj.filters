@@ -32,5 +32,8 @@
     <ClInclude Include="..\..\..\include\tiles.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\grid_size.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

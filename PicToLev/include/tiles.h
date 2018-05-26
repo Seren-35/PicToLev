@@ -32,14 +32,15 @@
 #include <vector>
 #include <gsl/gsl_util>
 #include <gsl/span>
+#include "grid_size.h"
 
 template<class T>
 using image_fragment = std::vector<gsl::span<T>>;
 
 template<class T>
-auto buffer_to_image(gsl::span<T> buffer, std::size_t width, std::size_t height) {
-	image_fragment<T> image(height);
-	std::generate(image.begin(), image.end(), [buffer, width]() mutable {
+auto buffer_to_image(gsl::span<T> buffer, grid_size size) {
+	image_fragment<T> image(size.height);
+	std::generate(image.begin(), image.end(), [buffer, width = size.width]() mutable {
 		gsl::span<T> row = buffer.subspan(0, width);
 		buffer = buffer.subspan(width);
 		return row;
@@ -54,9 +55,11 @@ template<class ForwardIt>
 auto image_to_tile_list(ForwardIt first, ForwardIt last, std::size_t tile_size) {
 	using container_type = std::remove_reference_t<typename ForwardIt::reference>;
 	using value_type = std::remove_reference_t<typename container_type::reference>;
-	const std::size_t height = std::distance(first, last) / tile_size;
-	const std::size_t width = first != last ? first->size() / tile_size : 0;
-	tile_vector<value_type> tiles(width * height, image_fragment<value_type>(tile_size));
+	const grid_size size {
+		first != last ? first->size() / tile_size : 0,
+		std::distance(first, last) / tile_size,
+	};
+	tile_vector<value_type> tiles(grid_area(size), image_fragment<value_type>(tile_size));
 	auto out = tiles.begin();
 	while (first != last) {
 		ForwardIt second = first;

@@ -37,6 +37,7 @@
 #include <lodepng.h>
 #include "binary_serialization.h"
 #include "container_hash.h"
+#include "grid_size.h"
 #include "tiles.h"
 
 constexpr unsigned image_count = 2;
@@ -52,8 +53,7 @@ struct image_file_context {
 	std::string filename;
 	std::vector<unsigned char> buffer;
 	bool known_size;
-	unsigned width;
-	unsigned height;
+	grid_size size;
 	lodepng::State state;
 	tile_vector<T> tiles;
 	typename tile_vector<T>::iterator tiles_it;
@@ -78,35 +78,34 @@ bool get_tile_list(image_file_context<const unsigned char>& context) {
 		return false;
 	}
 	if (context.known_size) {
-		if (width != context.width || height != context.height) {
+		if (width != context.size.width || height != context.size.height) {
 			std::cerr << "File " << context.filename << " has incorrect image size\n";
 			std::cerr << "Sizes of all images must be equal" << std::endl;
 			return false;
 		}
 	} else {
-		context.width = width;
-		context.height = height;
+		context.size.width = width;
+		context.size.height = height;
 	}
 	if (width & 31 || height & 31) {
 		std::cerr << "File " << context.filename << " has incorrect image size\n";
 		std::cerr << "Width and height must be multiples of 32" << std::endl;
 		return false;
 	}
-	const auto image = buffer_to_image(gsl::make_span(std::as_const(context.buffer)), width, height);
+	const auto image = buffer_to_image(gsl::make_span(std::as_const(context.buffer)), context.size);
 	context.tiles = image_to_tile_list(image.begin(), image.end(), tileset_tile_size);
 	return true;
 }
 
 struct level_file_context {
-	unsigned layer_width;
-	unsigned layer_height;
+	grid_size layer_size;
 	std::vector<std::vector<unsigned>> layer;
 };
 
 void write_data_streams(level_file_context& context) {
-	const unsigned reduced_width = (context.layer_width - 1) / word_size + 1;
-	const unsigned rounded_width = reduced_width * word_size;
-	std::vector<std::size_t> words(context.layer_height * reduced_width);
+	const std::size_t reduced_width = (context.layer_size.width - 1) / word_size + 1;
+	const std::size_t rounded_width = reduced_width * word_size;
+	std::vector<std::size_t> words(context.layer_size.height * reduced_width);
 	std::map<std::vector<unsigned>, std::size_t> tile_dictionary {{std::vector<unsigned>(word_size, 0), 0}};
 	auto word_it = words.begin();
 	for (auto&& layer_row : context.layer) {
@@ -145,8 +144,7 @@ int main(int argc, char* argv[]) try {
 		input.filename = arguments[i + 1];
 		if (i != 0) {
 			input.known_size = true;
-			input.width = inputs[0].width;
-			input.height = inputs[0].height;
+			input.size = inputs[0].size;
 		} else {
 			input.known_size = false;
 		}
@@ -159,9 +157,9 @@ int main(int argc, char* argv[]) try {
 		index = index != 0;
 	}
 	level_file_context level;
-	level.layer_width = inputs[0].width / tileset_tile_size;
-	level.layer_height = inputs[0].height / tileset_tile_size;
-	level.layer.assign(level.layer_height, std::vector<unsigned>(level.layer_width));
+	level.layer_size.width = inputs[0].size.width / tileset_tile_size;
+	level.layer_size.height = inputs[0].size.height / tileset_tile_size;
+	level.layer.assign(level.layer_size.height, std::vector<unsigned>(level.layer_size.width));
 	using image_t = image_fragment<const unsigned char>;
 	using tile_t = std::vector<image_t>;
 	tile_t empty_tile(image_count, image_t(tileset_tile_size, gsl::span<const unsigned char>(empty_tile_row)));
@@ -188,14 +186,17 @@ int main(int argc, char* argv[]) try {
 	}
 	const unsigned tileset_height = (tile_count - 1) / tileset_width + 1;
 	const unsigned tileset_image_height = tileset_height * tileset_tile_size;
+	grid_size tileset_image_size {
+		tileset_image_width,
+		tileset_image_height,
+	};
 	image_file_context<unsigned char> outputs[image_count];
 	for (gsl::index i = 0; i < image_count; i++) {
 		const auto& input = gsl::at(inputs, i);
 		auto& output = gsl::at(outputs, i);
-		output.width = tileset_image_width;
-		output.height = tileset_image_height;
-		output.buffer.assign(tileset_image_width * tileset_image_height, 0);
-		const auto output_image = buffer_to_image(gsl::make_span(output.buffer), tileset_image_width, tileset_image_height);
+		output.size = tileset_image_size;
+		output.buffer.assign(grid_area(tileset_image_size), 0);
+		const auto output_image = buffer_to_image(gsl::make_span(output.buffer), tileset_image_size);
 		output.tiles = image_to_tile_list(output_image.begin(), output_image.end(), tileset_tile_size);
 		for (const auto& [tile_content, tile_id] : tiles) {
 			const auto& src = gsl::at(tile_content, i);
