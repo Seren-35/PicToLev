@@ -30,6 +30,7 @@
 #include <iterator>
 #include <type_traits>
 #include <vector>
+#include <gsl/gsl_assert>
 #include <gsl/gsl_util>
 #include <gsl/span>
 #include "grid_size.h"
@@ -39,6 +40,7 @@ using image_fragment = std::vector<gsl::span<T>>;
 
 template<class T>
 auto buffer_to_image(gsl::span<T> buffer, grid_size size) {
+	Expects(gsl::narrow_cast<std::size_t>(buffer.size()) == grid_area(size));
 	image_fragment<T> image(size.height);
 	std::generate(image.begin(), image.end(), [buffer, width = size.width]() mutable {
 		gsl::span<T> row = buffer.subspan(0, width);
@@ -53,6 +55,8 @@ using tile_vector = std::vector<image_fragment<T>>;
 
 template<class ForwardIt>
 auto image_to_tile_list(ForwardIt first, ForwardIt last, std::size_t tile_size) {
+	Expects(std::distance(first, last) % tile_size == 0);
+	Expects(first == last || first->size() % tile_size == 0);
 	using container_type = std::remove_reference_t<typename ForwardIt::reference>;
 	using value_type = std::remove_reference_t<typename container_type::reference>;
 	const grid_size size {
