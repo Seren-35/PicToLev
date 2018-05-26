@@ -31,6 +31,10 @@
 *.out
 *.app
 
+# Documentation
+*/doc/html
+*/doc/latex
+
 # =========================
 # Operating System Files
 # =========================
