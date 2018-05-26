@@ -44,6 +44,11 @@ enum class endian {
 #endif
 };
 
+template<std::size_t N>
+void write_buffer(std::ostream& stream, const char (&buffer)[N]) {
+	stream.write(buffer, N);
+}
+
 template<endian Endian = endian::native, typename T>
 std::enable_if_t<std::is_integral_v<T> && (sizeof(T) == 1)>
 write_binary(std::ostream& stream, T value) {
@@ -55,17 +60,17 @@ std::enable_if_t<std::is_integral_v<T> && (sizeof(T) > 1)>
 write_binary(std::ostream& stream, T value) {
 	static_assert(Endian == endian::little || Endian == endian::big);
 	std::make_unsigned_t<T> u_value = value;
-	char buffer[sizeof(T)];
-	auto generator = [u_value]() mutable {
-		char result = gsl::narrow_cast<unsigned char>(u_value);
+	const auto generator = [&u_value]() {
+		const char result = gsl::narrow_cast<unsigned char>(u_value);
 		u_value >>= std::numeric_limits<unsigned char>::digits;
 		return result;
 	};
+	char buffer[sizeof(T)] {};
 	if constexpr (Endian == endian::little)
 		std::generate(std::begin(buffer), std::end(buffer), generator);
 	else
 		std::generate(std::rbegin(buffer), std::rend(buffer), generator);
-	stream.write(buffer, sizeof(T));
+	write_buffer(stream, buffer);
 }
 
 #endif
