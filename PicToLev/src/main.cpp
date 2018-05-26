@@ -38,11 +38,11 @@
 #include "tiles.h"
 
 constexpr unsigned image_count = 2;
-constexpr unsigned tile_size = 32;
-constexpr unsigned char empty_tile_row[tile_size] {};
+constexpr unsigned tileset_tile_size = 32;
+constexpr unsigned char empty_tile_row[tileset_tile_size] {};
 constexpr unsigned max_tiles = 4090;
 constexpr unsigned tileset_width = 10;
-constexpr unsigned tileset_image_width = tileset_width * tile_size;
+constexpr unsigned tileset_image_width = tileset_width * tileset_tile_size;
 constexpr unsigned word_size = 4;
 
 template<class T>
@@ -91,7 +91,7 @@ bool get_tile_list(image_file_context<const unsigned char>& context) {
 		return false;
 	}
 	const auto image = buffer_to_image(gsl::make_span(std::as_const(context.buffer)), width, height);
-	context.tiles = image_to_tile_list(image.begin(), image.end(), tile_size);
+	context.tiles = image_to_tile_list(image.begin(), image.end(), tileset_tile_size);
 	return true;
 }
 
@@ -102,19 +102,19 @@ struct level_file_context {
 };
 
 void write_data_streams(level_file_context& context) {
-	unsigned reduced_width = (context.layer_width - 1) / word_size + 1;
-	unsigned rounded_width = reduced_width * word_size;
+	const unsigned reduced_width = (context.layer_width - 1) / word_size + 1;
+	const unsigned rounded_width = reduced_width * word_size;
 	std::vector<std::size_t> words(context.layer_height * reduced_width);
 	std::map<std::vector<unsigned>, std::size_t> tile_dictionary {{std::vector<unsigned>(word_size, 0), 0}};
 	auto word_it = words.begin();
 	for (auto&& layer_row : context.layer) {
 		layer_row.resize(rounded_width);
 		for (auto it = layer_row.begin(); it != layer_row.end(); it += word_size) {
-			auto result = tile_dictionary.emplace(std::vector<unsigned>(it, it + word_size), tile_dictionary.size());
+			const auto result = tile_dictionary.emplace(std::vector<unsigned>(it, it + word_size), tile_dictionary.size());
 			*word_it++ = result.first->second;
 		}
 	}
-	std::size_t dictionary_size = tile_dictionary.size();
+	const std::size_t dictionary_size = tile_dictionary.size();
 	std::vector<std::vector<unsigned>> ordered_dictionary(dictionary_size);
 	for (const auto& [word_content, word_id] : tile_dictionary) {
 		ordered_dictionary[word_id] = word_content;
@@ -132,18 +132,19 @@ void write_data_streams(level_file_context& context) {
 }
 
 int main(int argc, char* argv[]) try {
-	if (argc != image_count + 1) {
+	gsl::span<char*> arguments(argv, argc);
+	if (arguments.size() != image_count + 1) {
 		std::cerr << "PicToLev expects exactly " << image_count << " arguments" << std::endl;
 		return 1;
 	}
 	image_file_context<const unsigned char> inputs[image_count];
 	for (gsl::index i = 0; i < image_count; i++) {
 		auto& input = inputs[i];
-		input.filename = argv[i + 1];
+		input.filename = arguments[i + 1];
 		if (i != 0) {
 			input.known_size = true;
-			input.width = inputs->width;
-			input.height = inputs->height;
+			input.width = inputs[0].width;
+			input.height = inputs[0].height;
 		} else {
 			input.known_size = false;
 		}
@@ -156,12 +157,12 @@ int main(int argc, char* argv[]) try {
 		index = index != 0;
 	}
 	level_file_context level;
-	level.layer_width = inputs->width / tile_size;
-	level.layer_height = inputs->height / tile_size;
+	level.layer_width = inputs[0].width / tileset_tile_size;
+	level.layer_height = inputs[0].height / tileset_tile_size;
 	level.layer.assign(level.layer_height, std::vector<unsigned>(level.layer_width));
 	using image_t = image_fragment<const unsigned char>;
 	using tile_t = std::vector<image_t>;
-	tile_t empty_tile(image_count, image_t(tile_size, gsl::span<const unsigned char>(empty_tile_row)));
+	tile_t empty_tile(image_count, image_t(tileset_tile_size, gsl::span<const unsigned char>(empty_tile_row)));
 	std::unordered_map<tile_t, std::size_t, container_deep_hash_t<tile_t, std::hash<unsigned char>>> tiles {{std::move(empty_tile), 0}};
 	for (auto&& context : inputs) {
 		context.tiles_it = context.tiles.begin();
@@ -173,18 +174,18 @@ int main(int argc, char* argv[]) try {
 				tile.emplace_back(std::move(*context.tiles_it));
 				++context.tiles_it;
 			}
-			auto result = tiles.emplace(std::move(tile), tiles.size());
+			const auto result = tiles.emplace(std::move(tile), tiles.size());
 			layer_tile = gsl::narrow_cast<unsigned>(result.first->second);
 		}
 	}
-	unsigned tile_count = gsl::narrow_cast<unsigned>(tiles.size());
+	const unsigned tile_count = gsl::narrow_cast<unsigned>(tiles.size());
 	if (tile_count > max_tiles) {
 		std::cerr << "The resulting tileset would have more than ";
 		std::cerr << max_tiles << " tiles" << std::endl;
 		return 1;
 	}
-	unsigned tileset_height = (tile_count - 1) / tileset_width + 1;
-	unsigned tileset_image_height = tileset_height * tile_size;
+	const unsigned tileset_height = (tile_count - 1) / tileset_width + 1;
+	const unsigned tileset_image_height = tileset_height * tileset_tile_size;
 	image_file_context<unsigned char> outputs[image_count];
 	for (gsl::index i = 0; i < image_count; i++) {
 		const auto& input = inputs[i];
@@ -193,7 +194,7 @@ int main(int argc, char* argv[]) try {
 		output.height = tileset_image_height;
 		output.buffer.assign(tileset_image_width * tileset_image_height, 0);
 		const auto output_image = buffer_to_image(gsl::make_span(output.buffer), tileset_image_width, tileset_image_height);
-		output.tiles = image_to_tile_list(output_image.begin(), output_image.end(), tile_size);
+		output.tiles = image_to_tile_list(output_image.begin(), output_image.end(), tileset_tile_size);
 		for (const auto& [tile_content, tile_id] : tiles) {
 			const auto& src = tile_content[i];
 			const auto& dest = output.tiles[tile_id];
