@@ -34,9 +34,9 @@
 #include <vector>
 #include <gsl/gsl_util>
 #include <gsl/span>
+#include <lodepng.h>
 #include "binary_serialization.h"
 #include "container_hash.h"
-#include "lodepng.h"
 #include "tiles.h"
 
 constexpr unsigned image_count = 2;

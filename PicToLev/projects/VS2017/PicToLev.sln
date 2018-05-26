@@ -3,7 +3,12 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27428.2043
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PicToLev", "PicToLev.vcxproj", "{4E4C514E-470F-4FA5-8694-ED0DA42AF57F}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LodePNG", "LodePNG\LodePNG.vcxproj", "{7F21A032-7E6A-45D5-B18F-6B6566ED957D}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PicToLev", "PicToLev\PicToLev.vcxproj", "{4E4C514E-470F-4FA5-8694-ED0DA42AF57F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{7F21A032-7E6A-45D5-B18F-6B6566ED957D} = {7F21A032-7E6A-45D5-B18F-6B6566ED957D}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,6 +18,14 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7F21A032-7E6A-45D5-B18F-6B6566ED957D}.Debug|x64.ActiveCfg = Debug|x64
+		{7F21A032-7E6A-45D5-B18F-6B6566ED957D}.Debug|x64.Build.0 = Debug|x64
+		{7F21A032-7E6A-45D5-B18F-6B6566ED957D}.Debug|x86.ActiveCfg = Debug|Win32
+		{7F21A032-7E6A-45D5-B18F-6B6566ED957D}.Debug|x86.Build.0 = Debug|Win32
+		{7F21A032-7E6A-45D5-B18F-6B6566ED957D}.Release|x64.ActiveCfg = Release|x64
+		{7F21A032-7E6A-45D5-B18F-6B6566ED957D}.Release|x64.Build.0 = Release|x64
+		{7F21A032-7E6A-45D5-B18F-6B6566ED957D}.Release|x86.ActiveCfg = Release|Win32
+		{7F21A032-7E6A-45D5-B18F-6B6566ED957D}.Release|x86.Build.0 = Release|Win32
 		{4E4C514E-470F-4FA5-8694-ED0DA42AF57F}.Debug|x64.ActiveCfg = Debug|x64
 		{4E4C514E-470F-4FA5-8694-ED0DA42AF57F}.Debug|x64.Build.0 = Debug|x64
 		{4E4C514E-470F-4FA5-8694-ED0DA42AF57F}.Debug|x86.ActiveCfg = Debug|Win32
