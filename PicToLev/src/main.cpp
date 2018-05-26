@@ -132,7 +132,7 @@ void write_data_streams(level_file_context& context) {
 }
 
 int main(int argc, char* argv[]) try {
-	gsl::span<char*> arguments(argv, argc);
+	const gsl::span<char*> arguments(argv, argc);
 	if (arguments.size() != image_count + 1) {
 		std::cerr << "PicToLev expects exactly " << image_count << " arguments" << std::endl;
 		return 1;
