@@ -97,6 +97,8 @@ bool get_tile_list(image_file_context<const unsigned char>& context) {
 	return true;
 }
 
+// TODO: This is an invariant and should be a class.
+// A generic grid template would be preferable.
 struct level_file_context {
 	grid_size layer_size;
 	std::vector<std::vector<unsigned>> layer;
