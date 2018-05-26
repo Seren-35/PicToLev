@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) try {
 	}
 	image_file_context<const unsigned char> inputs[image_count];
 	for (gsl::index i = 0; i < image_count; i++) {
-		auto& input = inputs[i];
+		auto& input = gsl::at(inputs, i);
 		input.filename = arguments[i + 1];
 		if (i != 0) {
 			input.known_size = true;
@@ -152,7 +152,7 @@ int main(int argc, char* argv[]) try {
 		}
 		input.state.decoder.color_convert = false;
 		input.state.info_raw.colortype = LCT_PALETTE;
-		if (!get_tile_list(inputs[i]))
+		if (!get_tile_list(input))
 			return 1;
 	}
 	for (auto&& index : inputs[1].buffer) {
@@ -190,16 +190,16 @@ int main(int argc, char* argv[]) try {
 	const unsigned tileset_image_height = tileset_height * tileset_tile_size;
 	image_file_context<unsigned char> outputs[image_count];
 	for (gsl::index i = 0; i < image_count; i++) {
-		const auto& input = inputs[i];
-		auto& output = outputs[i];
+		const auto& input = gsl::at(inputs, i);
+		auto& output = gsl::at(outputs, i);
 		output.width = tileset_image_width;
 		output.height = tileset_image_height;
 		output.buffer.assign(tileset_image_width * tileset_image_height, 0);
 		const auto output_image = buffer_to_image(gsl::make_span(output.buffer), tileset_image_width, tileset_image_height);
 		output.tiles = image_to_tile_list(output_image.begin(), output_image.end(), tileset_tile_size);
 		for (const auto& [tile_content, tile_id] : tiles) {
-			const auto& src = tile_content[i];
-			const auto& dest = output.tiles[tile_id];
+			const auto& src = gsl::at(tile_content, i);
+			const auto& dest = gsl::at(output.tiles, tile_id);
 			auto out = dest.begin();
 			for (auto it = src.begin(); it != src.end(); ++it, ++out) {
 				std::copy(it->begin(), it->end(), out->begin());
@@ -211,7 +211,7 @@ int main(int argc, char* argv[]) try {
 		output.state.encoder.auto_convert = false;
 		output.state.info_raw.colortype = LCT_PALETTE;
 		std::vector<unsigned char> file_buffer;
-		int error = lodepng::encode(file_buffer, output.buffer, tileset_image_width, tileset_image_height, inputs[i].state);
+		int error = lodepng::encode(file_buffer, output.buffer, tileset_image_width, tileset_image_height, output.state);
 		if (error != 0) {
 			std::cerr << "An error has occurred when decoding file ";
 			std::cerr << output.filename << ":\n";
