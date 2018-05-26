@@ -119,7 +119,7 @@ void write_data_streams(level_file_context& context) {
 	const std::size_t dictionary_size = tile_dictionary.size();
 	std::vector<std::vector<unsigned>> ordered_dictionary(dictionary_size);
 	for (const auto& [word_content, word_id] : tile_dictionary) {
-		ordered_dictionary[word_id] = word_content;
+		gsl::at(ordered_dictionary, word_id) = word_content;
 	}
 	std::ofstream stream3("Stream3", std::ios::binary);
 	for (const auto& word : ordered_dictionary) {
